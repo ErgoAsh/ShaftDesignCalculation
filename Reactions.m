@@ -75,10 +75,10 @@ plot(1000 * x_M3, 1000 * -d3/2, 'b', 'LineWidth', 2);
 
 %% Final strength
 sections = { ... d_used, Kf, Mb, Mt
-    ["I", 28, 2, findBending(26, x_M, M), Mt_2], ...
-    ["II", 30, 2, findBending(45, x_M, M), Mt_2], ...
-    ["III", 32, 2, findBending(52.5, x_M, M), Mt_2], ...
-    ["IV", 30, 2, findBending(101.43, x_M, M), 0], ...
+    ["I", 28, 1.8, findBending(26, x_M, M), Mt_2], ...
+    ["II", 30, 1.8, findBending(46, x_M, M), Mt_2], ...
+    ["III", 32, 1.8, findBending(53.5, x_M, M), Mt_2], ...
+    ["IV", 30, 1.8, findBending(106.33, x_M, M), 0], ...
 };
 
 n = 3; 
@@ -91,10 +91,11 @@ for i = 1 : length(sections)
     min_tors = diameter(Mb, tau_allowable) * 1000;
     min_comb = criticalDiameter(n, Kf, Mb, Tm, Se, Sy) * 1000;
     fprintf(['%s. ', ...
-             'Min torsion: %4.3f, ', ...
+             'Mb: %4.3f, ', ...
+             'Min bending: %4.3f, ', ...
              'Min combined: %4.3f, ', ...
              'Selected: %4.3f \n'], ...
-        sections{1, i}(1, 1), min_tors, min_comb, sections{1, i}(1, 2));
+       sections{1, i}(1, 1), Mb, min_tors, min_comb, sections{1, i}(1, 2));
 end
 
 
@@ -102,13 +103,13 @@ end
 d_safety = d * 1.07;
 SelectedProfile = { ...
     [0, 0], [0, 28], ...
-    [55.60, 28], [55.60, 30], ...
-    [74.60, 30], [74.60, 35], ...
-    [82.1, 35], [82.1, 32], ...
-    [131.03, 32], [131.03, 30], ...
-    [146.03, 30], [146.03, 0] ...
+    [55, 28], [55, 30], ...
+    [55 + 20, 30], [55 + 20, 35], ...
+    [55 + 20 + 7.5, 35], [55 + 20 + 7.5, 32], ...
+    [55 + 20 + 7.5 + 52.83, 32], [55 + 20 + 7.5 + 52.83, 30], ...
+    [55 + 20 + 7.5 + 52.83 + 15, 30], [55 + 20 + 7.5 + 52.83 + 15, 0] ...
 };
-x_selected = cellfun(@(vector) vector(1), SelectedProfile) - 29.60;
+x_selected = cellfun(@(vector) vector(1), SelectedProfile) - 29;
 y_selected = cellfun(@(vector) vector(2), SelectedProfile);
 
 figure(1); set(gcf, 'color', 'w');
@@ -119,11 +120,13 @@ plot(1000 * x_M, 1000 *  d_safety/2, 'g', 'LineWidth', 1.25);
 plot(1000 * x_M, 1000 * -d_safety/2, 'g', 'LineWidth', 1.25);
 plot(x_selected,  y_selected/2, '-r');
 plot(x_selected, -y_selected/2, '-r');
+xlim([0, 1000 * (l1 + l2 + l3)]);
 xline(0, '-.', 'Pulley');
 xline(1000 * l1, '-.', 'Bearing B');
 xline(1000 * (l1 + l2), '-.', 'Gear');
-xline(1000 * (l1 + l2 + l3), '-.', 'Bearing D');
-xlim([0, 1000 * (l1 + l2 + l3)]);
+xline(1000 * (l1 + l2 + l3), '-.', 'Bearing D', ...
+    'LabelHorizontalAlignment', 'left');
+
 grid on; grid minor; box on; axis equal;
 title('Theoretical outline of shaft (minimal diameters)');
 xlabel('Shaft length [mm]');
@@ -239,15 +242,23 @@ function [x_V, Vy, Vz, x_M, My, Mz] = shaftBending(Forces)
         end
     end
     
-    vpa(My_formula, 5)
-    %test = diff(My_formula);
-    %figure(155);
-    %fplot(test);
-    
-    vpa(Mz_formula, 5)
-    %test = diff(Mz_formula);
-    %figure(156);
-    %fplot(test);
+%     vpa(My_formula, 5)
+%     figure(155); hold on;
+%     Ty_formula = diff(My_formula);
+%     Ty = 
+%     for i = 1 : n - 1
+%         temp = subs(Ty_formula(i), x, [x_V(2*i - 1), x_V(2*i)]);
+%         plot(x_V, temp);
+%     end
+%     
+%     vpa(Mz_formula, 5)
+%     figure(156); hold on;
+%     Tz_formula = diff(Mz_formula);
+%     
+%     for i = 1 : n - 1
+%         temp = subs(Tz_formula(i), x, [x_V(2*i - 1), x_V(2*i)]);
+%         plot(x_V, temp);
+%     end
     
     x_M = []; My = []; Mz = [];
     for i = 1 : n - 1 % Interpolate moment values for plots
